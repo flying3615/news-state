@@ -34,6 +34,13 @@ async function processMarketNews(env: Env, force: boolean) {
 
     // 1. Fetch Data
     console.log(`Starting data fetch (Force: ${force})...`);
+
+    // Test Yahoo Finance if forced
+    if (force) {
+        const testPrice = await yahooService.getCurrentPrice('NVDA');
+        console.log(`[DEBUG] Current Price of NVDA: ${testPrice}`);
+    }
+
     const marketNews = await rssService.fetchNews();
     console.log(`Fetched ${marketNews.length} market news items.`);
 
