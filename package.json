@@ -1,0 +1,21 @@
+{
+  "name": "market-news-bot",
+  "version": "1.0.0",
+  "description": "Market news and congress trading telegram bot",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  }
+}
