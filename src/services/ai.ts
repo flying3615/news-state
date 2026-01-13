@@ -14,10 +14,11 @@ export class AiService {
 You remain a helpful assistant.
 I will provide you with a list of market news items.
 Your task is to:
-1. Select the top 5-10 most impactful news items.
-2. Summarize each item in **Simplified Chinese** (简体中文).
-3. **Output MUST be in Chinese**. Do not output English.
-4. Format the output as a bulleted list (• item).
+1. **Filter and Select** the top 5-10 most impactful news items that are **strictly related to Financial Markets** (e.g., Stock Market, Bonds, Central Banks, Economic Data, Major Corporate Earnings/Action, Commodities, Forex).
+2. **Exclude** general political news, sports, entertainment, or minor regional events unless they have a direct and significant impact on global financial markets.
+3. Summarize each selected item in **Simplified Chinese** (简体中文).
+4. **Output MUST be in Chinese**. Do not output English.
+5. Format the output as a bulleted list (• item).
 
 News Items:
 ${newsItems.map(item => `- ${item.title} (${item.pubDate}): ${item.content || ''}`).join('\n')}
