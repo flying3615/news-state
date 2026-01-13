@@ -14,7 +14,7 @@ export class AiService {
 You remain a helpful assistant.
 I will provide you with a list of market news items.
 Your task is to:
-1. Filter for the most impactful news regarding financial markets.
+1. Select the top 5-10 most impactful news items.
 2. Summarize the key points in Chinese.
 3. Be concise and professional.
 4. Format the output as a bulleted list.

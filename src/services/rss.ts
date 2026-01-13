@@ -48,7 +48,7 @@ export class RssService {
                 pubDate: item.pubDate || item.updated || new Date().toISOString(),
                 source: 'RSS' as const,
                 content: item.description || item.contentSnippet || item.content || ''
-            })).slice(0, 10);
+            })).slice(0, 30);
         } catch (error) {
             console.error('Error fetching RSS:', error);
             return [];
