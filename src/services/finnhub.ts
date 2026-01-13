@@ -23,15 +23,23 @@ export class FinnhubService {
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
         const dateStr = oneMonthAgo.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        // Fetch in parallel
-        await Promise.all(this.WATCHLIST.map(async (symbol) => {
+        // Fetch sequentially to avoid rate limits (429)
+        for (const symbol of this.WATCHLIST) {
             try {
                 const response = await fetch(`${this.BASE_URL}/stock/congress-trading?symbol=${symbol}&token=${this.apiKey}`);
+
+                if (response.status === 429) {
+                    console.warn(`Rate limit hit for ${symbol}, waiting 2s...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // Simple retry logic could go here, but for now we skip
+                    continue;
+                }
+
                 if (!response.ok) {
                     console.error(`Finnhub API Error for ${symbol}: ${response.status} ${response.statusText}`);
                     const text = await response.text();
                     console.error(`Response body: ${text.substring(0, 200)}`);
-                    return;
+                    continue;
                 }
 
                 const data: any = await response.json();
@@ -50,10 +58,14 @@ export class FinnhubService {
                         });
                     });
                 }
+
+                // Add a small delay between successful requests
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1s delay
+
             } catch (err) {
                 console.error(`Failed to fetch congress data for ${symbol}`, err);
             }
-        }));
+        }
 
         return allTrades;
     }
