@@ -16,7 +16,6 @@
     "wrangler": "^3.0.0"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.3.3",
-    "yahoo-finance2": "^3.11.2"
+    "fast-xml-parser": "^5.3.3"
   }
 }
