@@ -24,6 +24,9 @@ export class RssService {
             }
             const xmlText = await response.text();
             console.log(`RSS Fetched. Length: ${xmlText.length}`);
+            if (xmlText.length < 500) {
+                console.warn(`RSS Response too short: ${xmlText}`);
+            }
             const feed = this.parser.parse(xmlText);
 
             // Handle different RSS versions (rss.channel.item or feed.entry)
