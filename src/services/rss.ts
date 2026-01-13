@@ -3,7 +3,7 @@ import { NewsItem } from '../types';
 
 export class RssService {
     private parser: XMLParser;
-    private readonly FEED_URL = 'https://www.financejuice.com/feed';
+    private readonly FEED_URL = 'https://feeds.content.dowjones.io/public/rss/mw_topstories';
 
     constructor() {
         this.parser = new XMLParser({
