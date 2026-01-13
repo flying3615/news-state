@@ -4,6 +4,7 @@ import { FinnhubService } from './services/finnhub';
 import { AiService } from './services/ai';
 import { TelegramService } from './services/telegram';
 import { YahooService } from './services/yahoo';
+import { FinancialJuiceService } from './services/financialjuice';
 
 export default {
     async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
@@ -31,6 +32,7 @@ async function processMarketNews(env: Env, force: boolean) {
     const aiService = new AiService(env);
     const telegramService = new TelegramService(env);
     const yahooService = new YahooService();
+    const financialJuiceService = new FinancialJuiceService();
 
     // 1. Fetch Data
     console.log(`Starting data fetch (Force: ${force})...`);
@@ -42,14 +44,16 @@ async function processMarketNews(env: Env, force: boolean) {
     }
 
     const marketNews = await rssService.fetchNews();
-    console.log(`Fetched ${marketNews.length} market news items.`);
+    const fjNews = await financialJuiceService.fetchNews();
+    const allNews = [...marketNews, ...fjNews];
+    console.log(`Fetched ${marketNews.length} generic RSS items and ${fjNews.length} FinancialJuice items.`);
 
     const congressTrades = await finnhubService.fetchCongressTrades();
     console.log(`Fetched ${congressTrades.length} congress trades.`);
 
     // 2. Filter New Items (Simple deduplication via KV)
     const newMarketNews = [];
-    for (const item of marketNews) {
+    for (const item of allNews) {
         const seen = await env.NEWS_STATE.get(`seen_news:${item.id}`);
         if (!seen || force) {
             newMarketNews.push(item);

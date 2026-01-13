@@ -11,7 +11,7 @@ export interface NewsItem {
     title: string;
     link: string;
     pubDate: string;
-    source: 'RSS' | 'Congress' | 'General';
+    source: 'RSS' | 'Congress' | 'General' | 'FinancialJuice';
     content?: string;
 }
 
