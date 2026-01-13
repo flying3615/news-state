@@ -7,7 +7,7 @@ binding = "AI"
 
 [[kv_namespaces]]
 binding = "NEWS_STATE"
-id = "todo_replace_with_real_id"
+id = "b60c244e12b44a688ff29226b43be030"
 preview_id = "todo_replace_with_preview_id"
 
 [triggers]
