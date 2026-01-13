@@ -15,9 +15,9 @@ You remain a helpful assistant.
 I will provide you with a list of market news items.
 Your task is to:
 1. Select the top 5-10 most impactful news items.
-2. Summarize the key points in Chinese.
-3. Be concise and professional.
-4. Format the output as a bulleted list.
+2. Summarize each item in **Simplified Chinese** (简体中文).
+3. **Output MUST be in Chinese**. Do not output English.
+4. Format the output as a bulleted list (• item).
 
 News Items:
 ${newsItems.map(item => `- ${item.title} (${item.pubDate}): ${item.content || ''}`).join('\n')}
