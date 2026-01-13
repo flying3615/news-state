@@ -37,8 +37,12 @@ export class FinnhubService {
 
                 if (!response.ok) {
                     console.error(`Finnhub API Error for ${symbol}: ${response.status} ${response.statusText}`);
-                    const text = await response.text();
-                    console.error(`Response body: ${text.substring(0, 200)}`);
+                    continue;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.warn(`Unexpected content-type for ${symbol}: ${contentType}. Likely API issue/redirect.`);
                     continue;
                 }
 
