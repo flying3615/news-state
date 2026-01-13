@@ -16,3 +16,7 @@ crons = ["*/15 * * * *"] # Every 15 minutes
 
 
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+
