@@ -40,13 +40,22 @@ Output:
     async analyzeCongressTrades(trades: any[]): Promise<string> {
         if (trades.length === 0) return '';
 
+        // Format trades for AI context
+        const tradeContext = trades.map(t => {
+            let str = `- ${t.owner} ${t.transactionType} ${t.symbol} on ${t.transactionDate}. Amount: ${t.amount}. `;
+            if (t.price) str += `Price @ Tx: $${t.price}. `;
+            if (t.currentPrice) str += `Current Price: $${t.currentPrice}.`;
+            return str;
+        }).join('\n');
+
         const prompt = `
 I have a list of recent stock trades by US Congress members.
 Identify any significant or unusual trading activity (Buying/Selling).
 Summarize in Chinese.
+For each trade, mention the Transaction Price vs Current Price if available to show if they are currently profitable.
 
 Trades:
-${JSON.stringify(trades, null, 2)}
+${tradeContext}
 
 Output:
 `;

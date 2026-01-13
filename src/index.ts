@@ -3,6 +3,7 @@ import { RssService } from './services/rss';
 import { FinnhubService } from './services/finnhub';
 import { AiService } from './services/ai';
 import { TelegramService } from './services/telegram';
+import { YahooService } from './services/yahoo';
 
 export default {
     async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
@@ -39,6 +40,11 @@ export default {
             const id = `${trade.symbol}-${trade.transactionDate}-${trade.owner}-${trade.amount}`;
             const seen = await env.NEWS_STATE.get(`seen_trade:${id}`);
             if (!seen) {
+                // Enrich with current price from Yahoo Finance
+                const currentPrice = await yahooService.getCurrentPrice(trade.symbol);
+                if (currentPrice) {
+                    (trade as any).currentPrice = currentPrice;
+                }
                 newCongressTrades.push(trade);
                 await env.NEWS_STATE.put(`seen_trade:${id}`, '1', { expirationTtl: 86400 * 7 });
             }
