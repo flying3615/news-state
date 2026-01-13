@@ -1,6 +1,7 @@
 name = "market-news-bot"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 [ai]
 binding = "AI"
@@ -13,5 +14,5 @@ preview_id = "todo_replace_with_preview_id"
 [triggers]
 crons = ["*/15 * * * *"] # Every 15 minutes
 
-compatibility_flags = ["nodejs_compat"]
+
 
