@@ -14,8 +14,12 @@ export default {
         const telegramService = new TelegramService(env);
 
         // 1. Fetch Data
+        console.log('Starting data fetch...');
         const marketNews = await rssService.fetchNews();
+        console.log(`Fetched ${marketNews.length} market news items.`);
+
         const congressTrades = await finnhubService.fetchCongressTrades();
+        console.log(`Fetched ${congressTrades.length} congress trades.`);
 
         // 2. Filter New Items (Simple deduplication via KV)
         const newMarketNews = [];

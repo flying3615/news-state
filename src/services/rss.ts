@@ -14,23 +14,27 @@ export class RssService {
 
     async fetchNews(): Promise<NewsItem[]> {
         try {
-            const response = await fetch(this.FEED_URL);
+            console.log(`Fetching RSS from ${this.FEED_URL}`);
+            const response = await fetch(this.FEED_URL, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Cloudflare-Worker/1.0)' }
+            });
             if (!response.ok) {
-                console.error(`Failed to fetch RSS feed: ${response.statusText}`);
+                console.error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
                 return [];
             }
             const xmlText = await response.text();
+            console.log(`RSS Fetched. Length: ${xmlText.length}`);
             const feed = this.parser.parse(xmlText);
 
             // Handle different RSS versions (rss.channel.item or feed.entry)
             let items: any[] = [];
             if (feed.rss && feed.rss.channel && feed.rss.channel.item) {
-                items = Array.isArray(feed.rss.channel.item) 
-                    ? feed.rss.channel.item 
+                items = Array.isArray(feed.rss.channel.item)
+                    ? feed.rss.channel.item
                     : [feed.rss.channel.item];
             } else if (feed.feed && feed.feed.entry) {
-                items = Array.isArray(feed.feed.entry) 
-                    ? feed.feed.entry 
+                items = Array.isArray(feed.feed.entry)
+                    ? feed.feed.entry
                     : [feed.feed.entry];
             }
 
