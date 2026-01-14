@@ -7,34 +7,55 @@ export class AiService {
         this.ai = env.AI;
     }
 
-    async summarizeNews(newsItems: NewsItem[]): Promise<string> {
-        if (newsItems.length === 0) return '';
+    async summarizeNews(newsItems: NewsItem[]): Promise<any[]> {
+        if (newsItems.length === 0) return [];
 
         const prompt = `
 You remain a helpful assistant.
 I will provide you with a list of market news items.
 Your task is to:
-1. **Filter and Select** the top 5-10 most impactful news items that are **strictly related to Financial Markets** (e.g., Stock Market, Bonds, Central Banks, Economic Data, Major Corporate Earnings/Action, Commodities, Forex).
-2. **Exclude** general political news, sports, entertainment, or minor regional events unless they have a direct and significant impact on global financial markets.
+1. **Filter and Select** the top 5-10 most impactful news items that are **strictly related to Financial Markets**.
+2. **Exclude** general political news, sports, entertainment, or minor regional events.
 3. Summarize each selected item in **Simplified Chinese** (简体中文).
-4. **Output MUST be in Chinese**. Do not output English.
-5. Format the output as a bulleted list (• item).
+4. **Extract** the most relevant Stock Symbol or Asset Class (e.g., AAPL, NVDA, BTC, GOLD, USD) if explicitly mentioned or strongly implied. Returns null if none.
+5. **Output MUST be a valid JSON array**.
+   Structure:
+   [
+     {
+       "title": "News Title in Chinese",
+       "summary": "Summary in Chinese",
+       "symbol": "TickerSymbol" // e.g. "NVDA", or null
+     }
+   ]
 
 News Items:
 ${newsItems.map(item => `- ${item.title} (${item.pubDate}): ${item.content || ''}`).join('\n')}
 
-Output:
+Output JSON:
 `;
 
         try {
-            const response = await this.ai.run('@cf/meta/llama-3-8b-instruct', {
+            const response = await this.ai.run('@cf/meta/llama-3.1-70b-instruct', {
                 messages: [{ role: 'user', content: prompt }],
             });
 
-            return response.response || 'No summary generated.';
+            const content = response.response || '';
+            // Try to parse JSON from the response. Llama 3 often wraps code in markdown blocks.
+            const jsonMatch = content.match(/\[.*\]/s);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            // Fallback: try parsing the whole string if no markdown block found
+            try {
+                return JSON.parse(content);
+            } catch (e) {
+                console.warn("AI returned non-JSON:", content);
+                return [];
+            }
+
         } catch (error) {
             console.error('AI Processing Error:', error);
-            return 'Failed to generate summary.';
+            return [];
         }
     }
 
@@ -61,7 +82,7 @@ ${tradeContext}
 Output:
 `;
         try {
-            const response = await this.ai.run('@cf/meta/llama-3-8b-instruct', {
+            const response = await this.ai.run('@cf/meta/llama-3.1-70b-instruct', {
                 messages: [{ role: 'user', content: prompt }],
             });
             return response.response || '';

@@ -39,8 +39,8 @@ async function processMarketNews(env: Env, force: boolean) {
 
     // Test Yahoo Finance if forced
     if (force) {
-        const testPrice = await yahooService.getCurrentPrice('NVDA');
-        console.log(`[DEBUG] Current Price of NVDA: ${testPrice}`);
+        const testQuote = await yahooService.getQuote('NVDA');
+        console.log(`[DEBUG] Quote for NVDA: ${JSON.stringify(testQuote)}`);
     }
 
     const marketNews = await rssService.fetchNews();
@@ -69,9 +69,9 @@ async function processMarketNews(env: Env, force: boolean) {
         const seen = await env.NEWS_STATE.get(`seen_trade:${id}`);
         if (!seen || force) {
             // Enrich with current price from Yahoo Finance
-            const currentPrice = await yahooService.getCurrentPrice(trade.symbol);
-            if (currentPrice) {
-                (trade as any).currentPrice = currentPrice;
+            const quote = await yahooService.getQuote(trade.symbol);
+            if (quote) {
+                (trade as any).currentPrice = quote.price;
             }
             newCongressTrades.push(trade);
             if (!force) await env.NEWS_STATE.put(`seen_trade:${id}`, '1', { expirationTtl: 86400 * 7 });
@@ -87,8 +87,28 @@ async function processMarketNews(env: Env, force: boolean) {
     let message = '';
 
     if (newMarketNews.length > 0) {
-        const newsSummary = await aiService.summarizeNews(newMarketNews);
-        message += `📢 **Market News Update**\n${newsSummary}\n\n`;
+        const newsSummaries = await aiService.summarizeNews(newMarketNews);
+
+        let formattedNews = '';
+        for (const item of newsSummaries) {
+            let line = `• ${item.summary}`;
+            const symbol = item.symbol;
+
+            // Inject Market Data if symbol exists
+            if (symbol && symbol !== 'null') {
+                const quote = await yahooService.getQuote(symbol);
+                if (quote) {
+                    const icon = quote.changePercent >= 0 ? '🟢' : '🔴';
+                    const sign = quote.changePercent >= 0 ? '+' : '';
+                    line += ` (${symbol}: $${quote.price}, ${icon} ${sign}${quote.changePercent}%)`;
+                }
+            }
+            formattedNews += `${line}\n`;
+        }
+
+        if (formattedNews) {
+            message += `📢 **Market News Update**\n${formattedNews}\n\n`;
+        }
     }
 
     if (newCongressTrades.length > 0) {
