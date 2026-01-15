@@ -57,16 +57,43 @@ Output JSON:
             });
 
             console.log(`[AI] Raw response type: ${typeof response}, has response property: ${!!response.response}`);
+            console.log(`[AI] Response keys:`, Object.keys(response));
+            console.log(`[AI] Full response object:`, JSON.stringify(response).substring(0, 1000));
 
-            let content = response.response || '';
+            // Try different possible response properties and nested structures
+            let content = '';
+
+            // Direct string response
+            if (typeof response === 'string') {
+                content = response;
+            }
+            // Check common response property patterns
+            else if (response.response) {
+                content = typeof response.response === 'string' ? response.response : JSON.stringify(response.response);
+            } else if (response.result) {
+                content = typeof response.result === 'string' ? response.result : JSON.stringify(response.result);
+            } else if (response.output) {
+                content = typeof response.output === 'string' ? response.output : JSON.stringify(response.output);
+            } else if (response.text) {
+                content = response.text;
+            } else if (response.generated_text) {
+                content = response.generated_text;
+            } else if (response.choices && Array.isArray(response.choices) && response.choices.length > 0) {
+                // OpenAI-style response
+                content = response.choices[0].message?.content || response.choices[0].text || '';
+            } else if (response.data) {
+                content = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+            }
 
             if (!content) {
                 console.warn('[AI] Empty response from AI model');
+                console.warn('[AI] Response structure:', JSON.stringify(response, null, 2));
+                console.warn('[AI] Available properties:', Object.keys(response).join(', '));
                 return [];
             }
 
             // Log the first 500 chars for debugging
-            console.log(`[AI] Response preview (first 500 chars): ${content.substring(0, 500)}`);
+            console.log(`[AI] Response content extracted (first 500 chars): ${content.substring(0, 500)}`);
 
             // Clean up common AI artifacts
             content = content.trim();
