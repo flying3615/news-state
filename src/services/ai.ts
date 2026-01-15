@@ -13,25 +13,28 @@ export class AiService {
     async summarizeNews(newsItems: NewsItem[]): Promise<any[]> {
         if (newsItems.length === 0) return [];
 
-        const systemPrompt = `You are a financial market analyst. 
-Your task is to filter and summarize news strictly in JSON format.
+        const systemPrompt = `You are a financial market analyst specializing in identifying investment opportunities. 
+Your task is to filter and summarize news that presents actionable investment insights, strictly in JSON format.
+Focus on news that could impact stock prices, create trading opportunities, or signal market trends.
 DO NOT include any introductory text, conversational filler, or markdown formatting outside the JSON block.
-Output MUST be a valid JSON array.`;
+Output MUST be a valid JSON array highlighting investment potential.`;
 
         const userPrompt = `
 I will provide you with a list of market news items.
 Your task is to:
-1. **Filter and Select** the top 5-10 most impactful news items that are **strictly related to Financial Markets**.
-2. **Exclude** general political news, sports, entertainment, or minor regional events.
-3. Summarize each selected item in **Simplified Chinese** (简体中文).
-4. **Extract** the most relevant Stock Symbol or Asset Class (e.g., AAPL, NVDA, BTC, GOLD, USD) if explicitly mentioned or strongly implied. Returns null if none.
-5. **Output MUST be a valid JSON array**.
+1. **Filter and Select** the top 10-20 most impactful news items that present **STOCK INVESTMENT OPPORTUNITIES or strictly related to Financial Markets**.
+2. **Focus on**: Earnings reports, product launches, regulatory approvals, mergers & acquisitions, major contracts, breakthrough technologies, sector trends, analyst upgrades/downgrades, and market-moving events.
+3. **EXCLUDE**: General political news, sports, entertainment, minor regional events, or news without clear stock market implications.
+4. **Prioritize** news that could significantly impact stock prices or present trading opportunities.
+5. Summarize each selected item in **Simplified Chinese** (简体中文), highlighting the **investment angle** and potential market impact.
+6. **Extract** the most relevant Stock Symbol or Asset Class (e.g., AAPL, NVDA, TSLA, BTC, GOLD, USD). If a specific stock is mentioned or strongly implied, ALWAYS include it. Returns null only if no specific investment target exists.
+7. **Output MUST be a valid JSON array**.
 
 Structure:
 [
   {
-    "title": "News Title in Chinese",
-    "summary": "Summary in Chinese",
+    "title": "News Title in Chinese (focus on investment angle)",
+    "summary": "Summary in Chinese emphasizing investment opportunity or risk",
     "symbol": "TickerSymbol" // e.g. "NVDA", or null
   }
 ]
