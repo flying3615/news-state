@@ -1,3 +1,4 @@
+/// <reference path="../global.d.ts" />
 import { Env, NewsItem } from '../types';
 
 export class AiService {
@@ -45,6 +46,8 @@ Output JSON:
             const model = this.env.AI_TEXT_MODEL || '@cf/meta/llama-3.1-70b-instruct';
             const maxTokens = parseInt(this.env.AI_MAX_TOKENS) || 2048;
 
+            console.log(`[AI] Using model: ${model}, max_tokens: ${maxTokens}`);
+
             const response = await this.ai.run(model, {
                 messages: [
                     { role: 'system', content: systemPrompt },
@@ -53,24 +56,59 @@ Output JSON:
                 max_tokens: maxTokens
             });
 
+            console.log(`[AI] Raw response type: ${typeof response}, has response property: ${!!response.response}`);
+
             let content = response.response || '';
+
+            if (!content) {
+                console.warn('[AI] Empty response from AI model');
+                return [];
+            }
+
+            // Log the first 500 chars for debugging
+            console.log(`[AI] Response preview (first 500 chars): ${content.substring(0, 500)}`);
 
             // Clean up common AI artifacts
             content = content.trim();
 
-            // Try to extract JSON from markdown or text
-            const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+            // Remove markdown code blocks if present
+            content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
+            // Remove any text before first [ or {
+            const jsonStartMatch = content.match(/[\[{]/);
+            if (jsonStartMatch) {
+                content = content.substring(content.indexOf(jsonStartMatch[0]));
+            }
+
+            // Remove any text after last ] or }
+            const jsonEndMatch = content.match(/[\]}]/g);
+            if (jsonEndMatch) {
+                const lastBracket = content.lastIndexOf(jsonEndMatch[jsonEndMatch.length - 1]);
+                content = content.substring(0, lastBracket + 1);
+            }
+
+            // Try to extract JSON array from content
+            const jsonMatch = content.match(/\[\s*{[\s\S]*}\s*]/);
             const targetJson = jsonMatch ? jsonMatch[0] : content;
 
+            console.log(`[AI] Attempting to parse JSON (length: ${targetJson.length})`);
+
             try {
-                return JSON.parse(targetJson);
+                const parsed = JSON.parse(targetJson);
+                console.log(`[AI] Successfully parsed ${Array.isArray(parsed) ? parsed.length : 0} items`);
+                return Array.isArray(parsed) ? parsed : [];
             } catch (e) {
-                console.warn("AI returned non-JSON or invalid JSON:", content);
+                console.warn('[AI] JSON parse error:', e instanceof Error ? e.message : String(e));
+                console.warn('[AI] Full AI response:', content);
+                console.warn('[AI] Attempted to parse:', targetJson.substring(0, 1000));
                 return [];
             }
 
         } catch (error) {
-            console.error('AI Processing Error:', error);
+            console.error('[AI] Processing Error:', error instanceof Error ? error.message : String(error));
+            if (error instanceof Error && error.stack) {
+                console.error('[AI] Stack trace:', error.stack);
+            }
             return [];
         }
     }

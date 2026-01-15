@@ -1,3 +1,4 @@
+/// <reference path="./global.d.ts" />
 import { Env } from './types';
 import { RssService } from './services/rss';
 import { AiService } from './services/ai';
@@ -66,23 +67,38 @@ async function processMarketNews(env: Env, force: boolean) {
     let message = '';
 
     if (newMarketNews.length > 0) {
+        console.log(`[AI] Processing ${newMarketNews.length} news items...`);
         const newsSummaries = await aiService.summarizeNews(newMarketNews);
+        console.log(`[AI] Received ${newsSummaries.length} summaries from AI`);
 
         let formattedNews = '';
         for (const item of newsSummaries) {
+            if (!item || !item.summary) {
+                console.warn('[AI] Skipping invalid summary item:', item);
+                continue;
+            }
+
             let line = `• ${item.summary}`;
             const symbol = item.symbol;
 
             // Inject Market Data if symbol exists
             if (symbol && symbol !== 'null') {
+                console.log(`[MARKET] Fetching quote for symbol: ${symbol}`);
                 // Add a small delay to avoid Yahoo rate limits if many symbols found
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                const quote = await yahooService.getQuote(symbol);
-                if (quote) {
-                    const icon = quote.changePercent >= 0 ? '🟢' : '🔴';
-                    const sign = quote.changePercent >= 0 ? '+' : '';
-                    line += ` (${symbol}: $${quote.price}, ${icon} ${sign}${quote.changePercent}%)`;
+                try {
+                    const quote = await yahooService.getQuote(symbol);
+                    if (quote) {
+                        const icon = quote.changePercent >= 0 ? '🟢' : '🔴';
+                        const sign = quote.changePercent >= 0 ? '+' : '';
+                        line += ` (${symbol}: $${quote.price}, ${icon} ${sign}${quote.changePercent}%)`;
+                        console.log(`[MARKET] ${symbol}: $${quote.price} (${sign}${quote.changePercent}%)`);
+                    } else {
+                        console.warn(`[MARKET] No quote data returned for ${symbol}`);
+                    }
+                } catch (error) {
+                    console.error(`[MARKET] Error fetching quote for ${symbol}:`, error);
                 }
             }
             formattedNews += `${line}\n`;
@@ -90,6 +106,8 @@ async function processMarketNews(env: Env, force: boolean) {
 
         if (formattedNews) {
             message += `📢 **Market News Update**\n${formattedNews}\n\n`;
+        } else {
+            console.warn('[AI] No formatted news generated from summaries');
         }
     }
 
