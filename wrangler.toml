@@ -4,7 +4,7 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-AI_TEXT_MODEL = "@cf/meta/llama-3.1-70b-instruct"
+AI_TEXT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8"
 AI_MAX_TOKENS = "2048"
 
 [ai]
