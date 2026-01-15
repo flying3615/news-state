@@ -96,6 +96,9 @@ async function processMarketNews(env: Env, force: boolean) {
 
             // Inject Market Data if symbol exists
             if (symbol && symbol !== 'null') {
+                // Add a small delay to avoid Yahoo rate limits if many symbols found
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
                 const quote = await yahooService.getQuote(symbol);
                 if (quote) {
                     const icon = quote.changePercent >= 0 ? '🟢' : '🔴';

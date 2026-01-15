@@ -2,9 +2,11 @@ import { Env, NewsItem } from '../types';
 
 export class AiService {
     private ai: any;
+    private env: Env;
 
     constructor(env: Env) {
         this.ai = env.AI;
+        this.env = env;
     }
 
     async summarizeNews(newsItems: NewsItem[]): Promise<any[]> {
@@ -40,12 +42,15 @@ Output JSON:
 `;
 
         try {
-            const response = await this.ai.run('@cf/meta/llama-3.1-70b-instruct', {
+            const model = this.env.AI_TEXT_MODEL || '@cf/meta/llama-3.1-70b-instruct';
+            const maxTokens = parseInt(this.env.AI_MAX_TOKENS) || 2048;
+
+            const response = await this.ai.run(model, {
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                max_tokens: 2048
+                max_tokens: maxTokens
             });
 
             let content = response.response || '';
@@ -93,12 +98,15 @@ ${tradeContext}
 Output:
 `;
         try {
-            const response = await this.ai.run('@cf/meta/llama-3.1-70b-instruct', {
+            const model = this.env.AI_TEXT_MODEL || '@cf/meta/llama-3.1-70b-instruct';
+            const maxTokens = Math.floor((parseInt(this.env.AI_MAX_TOKENS) || 2048) / 2);
+
+            const response = await this.ai.run(model, {
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                max_tokens: 1024
+                max_tokens: maxTokens
             });
             return response.response || '';
         } catch (e) {

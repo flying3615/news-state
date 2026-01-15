@@ -4,6 +4,8 @@ export interface Env {
     TELEGRAM_BOT_TOKEN: string;
     TELEGRAM_CHAT_ID: string;
     FINNHUB_API_KEY: string;
+    AI_TEXT_MODEL: string;
+    AI_MAX_TOKENS: string;
 }
 
 export interface NewsItem {
