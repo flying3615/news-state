@@ -75,43 +75,4 @@ Output JSON:
         }
     }
 
-    async analyzeCongressTrades(trades: any[]): Promise<string> {
-        if (trades.length === 0) return '';
-
-        const tradeContext = trades.map(t => {
-            let str = `- ${t.owner} ${t.transactionType} ${t.symbol} on ${t.transactionDate}. Amount: ${t.amount}. `;
-            if (t.price) str += `Price @ Tx: $${t.price}. `;
-            if (t.currentPrice) str += `Current Price: $${t.currentPrice}.`;
-            return str;
-        }).join('\n');
-
-        const systemPrompt = "You are an expert on US Congressional trading activity. Summarize trends clearly in Chinese.";
-        const userPrompt = `
-I have a list of recent stock trades by US Congress members.
-Identify any significant or unusual trading activity (Buying/Selling).
-Summarize in Chinese.
-For each trade, mention the Transaction Price vs Current Price if available to show if they are currently profitable.
-
-Trades:
-${tradeContext}
-
-Output:
-`;
-        try {
-            const model = this.env.AI_TEXT_MODEL || '@cf/meta/llama-3.1-70b-instruct';
-            const maxTokens = Math.floor((parseInt(this.env.AI_MAX_TOKENS) || 2048) / 2);
-
-            const response = await this.ai.run(model, {
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                max_tokens: maxTokens
-            });
-            return response.response || '';
-        } catch (e) {
-            console.error("AI Error Congress:", e);
-            return "Failed to analyze congress trades.";
-        }
-    }
 }

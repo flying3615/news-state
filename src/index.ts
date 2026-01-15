@@ -1,6 +1,5 @@
 import { Env } from './types';
 import { RssService } from './services/rss';
-import { FinnhubService } from './services/finnhub';
 import { AiService } from './services/ai';
 import { TelegramService } from './services/telegram';
 import { YahooService } from './services/yahoo';
@@ -28,7 +27,6 @@ export default {
 
 async function processMarketNews(env: Env, force: boolean) {
     const rssService = new RssService();
-    const finnhubService = new FinnhubService(env);
     const aiService = new AiService(env);
     const telegramService = new TelegramService(env);
     const yahooService = new YahooService();
@@ -48,9 +46,6 @@ async function processMarketNews(env: Env, force: boolean) {
     const allNews = [...marketNews, ...fjNews];
     console.log(`Fetched ${marketNews.length} generic RSS items and ${fjNews.length} FinancialJuice items.`);
 
-    const congressTrades = await finnhubService.fetchCongressTrades();
-    console.log(`Fetched ${congressTrades.length} congress trades.`);
-
     // 2. Filter New Items (Simple deduplication via KV)
     const newMarketNews = [];
     for (const item of allNews) {
@@ -62,23 +57,7 @@ async function processMarketNews(env: Env, force: boolean) {
         }
     }
 
-    // Simplistic dedupe for congress trades
-    const newCongressTrades = [];
-    for (const trade of congressTrades) {
-        const id = `${trade.symbol}-${trade.transactionDate}-${trade.owner}-${trade.amount}`;
-        const seen = await env.NEWS_STATE.get(`seen_trade:${id}`);
-        if (!seen || force) {
-            // Enrich with current price from Yahoo Finance
-            const quote = await yahooService.getQuote(trade.symbol);
-            if (quote) {
-                (trade as any).currentPrice = quote.price;
-            }
-            newCongressTrades.push(trade);
-            if (!force) await env.NEWS_STATE.put(`seen_trade:${id}`, '1', { expirationTtl: 86400 * 7 });
-        }
-    }
-
-    if (newMarketNews.length === 0 && newCongressTrades.length === 0) {
+    if (newMarketNews.length === 0) {
         console.log('No new items to process.');
         return;
     }
@@ -112,11 +91,6 @@ async function processMarketNews(env: Env, force: boolean) {
         if (formattedNews) {
             message += `📢 **Market News Update**\n${formattedNews}\n\n`;
         }
-    }
-
-    if (newCongressTrades.length > 0) {
-        const tradeAnalysis = await aiService.analyzeCongressTrades(newCongressTrades);
-        message += `🏛️ **Congress Trading Alert**\n${tradeAnalysis}\n\n`;
     }
 
     // 4. Send Notification
